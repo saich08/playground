@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="keywords" content="quantum, quantum-mechanics, quantum-computing, qubit, bloch-sphere, bloch-sphere-simulator, quantum-circuit, quantum-circuit-simulator">
+  <meta name="description" content="Multi-qubit quantum circuit simulator with drag-and-drop gates.">
+
+  <title>Playground | Quantum Circuit Simulator</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" />
+
+  <link rel="stylesheet" href="css/main.css" />
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-B24B6YZMPJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-B24B6YZMPJ');
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <span class="navbar-brand"><img class="brand-icon" src="favicon.svg" alt="" width="28" height="28" /> Playground</span>
+    <div class="navbar-controls">
+      <div class="qubit-stepper">
+        <span class="stepper-label">Qubits</span>
+        <button id="qubit-dec" class="btn-nav btn-stepper" title="Remove a qubit">−</button>
+        <span id="qubit-count">16</span>
+        <button id="qubit-inc" class="btn-nav btn-stepper" title="Add a qubit">+</button>
+      </div>
+      <div class="shots-control">
+        <span class="stepper-label">Shots</span>
+        <input type="number" id="shots-input" class="shots-input" value="1024" min="1" max="100000" />
+      </div>
+      <div class="dropdown">
+        <button id="examples-toggle" class="btn-nav">Examples ▾</button>
+        <div id="examples-menu" class="dropdown-menu no-display">
+          <div class="dropdown-item" data-example="superposition">Superposition</div>
+          <div class="dropdown-item" data-example="teleportation">Teleportation (3-qubit)</div>
+        </div>
+      </div>
+      <button id="clear-btn" class="btn-nav">Clear</button>
+      <button id="export-btn" class="btn-nav" title="Download the current circuit as JSON">Export</button>
+      <button id="import-btn" class="btn-nav" title="Load a circuit from a JSON file">Load</button>
+      <input type="file" id="import-input" class="no-display" accept="application/json,.json" />
+      <a class="btn-nav" href="https://github.com/bits-and-electrons/playground/issues/new" target="_blank" rel="noopener" title="Report a bug on GitHub">Report Bug</a>
+      <a id="version-badge" class="version-badge" href="https://github.com/bits-and-electrons/playground" target="_blank" rel="noopener" title="View repository">v1.0.0</a>
+    </div>
+  </nav>
+
+  <div class="app-shell">
+    <div class="main-col">
+      <div id="circuit-panel" class="circuit-panel">
+        <div class="panel-header">
+          <span class="panel-title">Quantum Circuit</span>
+        </div>
+        <div class="circuit-body">
+          <div id="circuit-scroll" class="circuit-scroll"></div>
+          <aside id="bloch-rail" class="bloch-rail" title="Per-qubit Bloch spheres — reduced state of each qubit, updated on Run">
+            <div id="bloch-rail-inner" class="bloch-rail-inner"></div>
+          </aside>
+        </div>
+      </div>
+      <div id="results-panel" class="results-panel"></div>
+    </div>
+
+    <aside id="toolbox">
+      <div class="toolbox-inner">
+        <div class="toolbox-header"><h4>Toolbox</h4></div>
+
+        <div class="gate-category">
+          <div class="gate-category-title">Single-Qubit</div>
+
+          <div class="gate-subsection">
+            <div class="gate-subsection-title">Basic</div>
+            <div class="gate-group">
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="H" title="Hadamard">H</button>
+              </div>
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="X" title="Pauli-X">X</button>
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="Y" title="Pauli-Y">Y</button>
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="Z" title="Pauli-Z">Z</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gate-subsection">
+            <div class="gate-subsection-title">Phase</div>
+            <div class="gate-group">
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="S" title="Phase (S)">S</button>
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="Sdg" title="S Dagger">S†</button>
+              </div>
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="T" title="T (π/8)">T</button>
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="Tdg" title="T Dagger">T†</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gate-subsection">
+            <div class="gate-subsection-title">Rotation</div>
+            <div class="gate-group">
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="RX" title="Rotation-X (click placed gate to adjust θ)">RX</button>
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="RY" title="Rotation-Y (click placed gate to adjust θ)">RY</button>
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="RZ" title="Rotation-Z (click placed gate to adjust θ)">RZ</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gate-subsection">
+            <div class="gate-subsection-title">State Prep</div>
+            <div class="gate-group">
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="RANDOM" title="Random State Prep — Haar-random state, re-sampled on every run">R?</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gate-category">
+          <div class="gate-category-title">Multi-Qubit</div>
+          <div class="gate-group">
+            <div class="gate-row">
+              <button class="quantum-gate btn-custom" draggable="true" data-gate="CNOT" title="Controlled-NOT">CNOT</button>
+              <button class="quantum-gate btn-custom" draggable="true" data-gate="CZ" title="Controlled-Z">CZ</button>
+              <button class="quantum-gate btn-custom" draggable="true" data-gate="SWAP" title="Swap">SWAP</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gate-category">
+          <div class="gate-category-title">Measurement &amp; Diagnostics</div>
+
+          <div class="gate-subsection">
+            <div class="gate-subsection-title">Readout</div>
+            <div class="gate-group">
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="MEASURE" title="Measure (Z basis)">M</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gate-subsection">
+            <div class="gate-subsection-title">Diagnostics</div>
+            <div class="gate-group">
+              <div class="gate-row">
+                <button class="quantum-gate btn-custom" draggable="true" data-gate="SNAPSHOT" title="Bloch Snapshot — shows this qubit's Bloch-sphere state at this point in the circuit">◎</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="src/math/complex.js"></script>
+  <script src="src/quantum/gates.js"></script>
+  <script src="src/quantum/circuit-model.js"></script>
+  <script src="src/quantum/serialize.js"></script>
+  <script src="src/quantum/simulator.js"></script>
+  <script src="src/ui/toast.js"></script>
+  <script src="src/ui/angle-popover.js"></script>
+  <script src="src/render/render-circuit.js"></script>
+  <script src="src/render/render-bloch.js"></script>
+  <script src="src/render/render-results.js"></script>
+  <script src="src/quantum/examples.js"></script>
+  <script src="src/events/dnd.js"></script>
+  <script src="src/init.js"></script>
+</body>
+</html>
